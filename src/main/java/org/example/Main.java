@@ -1,19 +1,24 @@
 package org.example;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
 
-        int safeReportsCount = 0, currentValue, nextValue;
-        boolean sortAsc = false, sortDesc = false, firstTime = true, valid = true;
+        int total = 0;
+        int currentValue;
+        int nextValue;
+
+        List<Integer> list = new ArrayList<>();
+        List<Integer> list2 = new ArrayList<>();
 
         BufferedReader reader = null;
-
         try {
-            reader = new BufferedReader(new FileReader("/Users/mpaulsen/repos/lagarsoft/AdventOfCode/src/main/java/org/example/input.txt"));
-//            reader = new BufferedReader(new FileReader("/Users/mpaulsen/repos/lagarsoft/AdventOfCode/src/main/java/org/example/sample2.txt"));
+//            reader = new BufferedReader(new FileReader("/Users/mpaulsen/repos/lagarsoft/AdventOfCode/src/main/java/org/example/sample-day1.txt"));
+            reader = new BufferedReader(new FileReader("/Users/mpaulsen/repos/lagarsoft/AdventOfCode/src/main/java/org/example/input-day1.txt"));
             String line = reader.readLine();
 
             while (line != null) {
@@ -26,47 +31,9 @@ public class Main {
                 }
 
                 currentValue = Integer.parseInt(scanner.next());
-                while (valid && scanner.hasNext()) {
-                    nextValue = Integer.parseInt(scanner.next());
-                    if (firstTime) {
-                        if (currentValue < nextValue) {
-                            sortAsc = true;
-                            sortDesc = false;
-                        } else if (currentValue > nextValue) {
-                            sortAsc = false;
-                            sortDesc = true;
-                        } else {
-                            valid = false;
-                        }
-                        firstTime = false;
-                    }
-
-                    if (currentValue < nextValue) {
-                        if (sortAsc && (nextValue-currentValue >= 1) && (nextValue-currentValue <= 3)) {
-                            valid = true;
-                        } else {
-                            valid = false;
-                        }
-                    } else if (currentValue > nextValue) {
-                        if (sortDesc && (currentValue-nextValue >= 1) && (currentValue-nextValue <= 3)) {
-                            valid = true;
-                        } else {
-                            valid = false;
-                        }
-                    } else {
-                        valid = false;
-                    }
-
-                    // prepare for next value
-                    currentValue = nextValue;
-                }
-                if (valid) {
-                    safeReportsCount++;
-                } else {
-                    valid = true;
-                }
-                // prepare for next line
-                firstTime = true;
+                list.add(currentValue);
+                nextValue = Integer.parseInt(scanner.next());
+                list2.add(nextValue);
 
                 scanner.close();
 
@@ -74,11 +41,27 @@ public class Main {
             }
 
             reader.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        System.out.println("Safe reports count: " + safeReportsCount);
+        list.sort(Integer::compareTo);
+        list2.sort(Integer::compareTo);
+
+        for (int i = 0; i < list.size(); i++) {
+            int item = list.get(i);
+            int item2 = list2.get(i);
+            int difference = 0;
+            if (item > item2) {
+                difference = item - item2;
+            } else if (item < item2) {
+                difference = item2 - item;
+            }
+            total += difference;
+        }
+
+        System.out.println("Total distance: " + total);
 
     }
 
