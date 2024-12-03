@@ -46,18 +46,11 @@ public class Main {
             e.printStackTrace();
         }
 
-        list.sort(Integer::compareTo);
-        list2.sort(Integer::compareTo);
+        for (int item : list) {
+            // count the number of times this value appears in the list2
+            int numberOfTimes = list2.stream().filter(x -> x == item).mapToInt(x -> 1).sum();
 
-        for (int i = 0; i < list.size(); i++) {
-            int item = list.get(i);
-            int item2 = list2.get(i);
-            int difference = 0;
-            if (item > item2) {
-                difference = item - item2;
-            } else if (item < item2) {
-                difference = item2 - item;
-            }
+            int difference = item * numberOfTimes;
             total += difference;
         }
 
