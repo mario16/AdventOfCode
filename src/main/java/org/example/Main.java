@@ -2,30 +2,48 @@ package org.example;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Main {
 
+    private static final String ABSOLUTH_PATH_FOLDER = "/Users/mpaulsen/repos/lagarsoft/AdventOfCode/src/main/java/org/example/";
+
     private static char[][] alphabetSoup;
     private static int total = 0;
 
+
     public static void main(String[] args) {
 
-        List<List<Character>> rows = new ArrayList<>();
+        List<String> rules = new ArrayList<>();
+        List<RuleModel> rulesParsed = new ArrayList<>();
+        List<String> updates = new ArrayList<>();
+        List<int[]> updatesParsed = new ArrayList<>();
 
         BufferedReader reader = null;
         try {
-//            reader = new BufferedReader(new FileReader("/Users/mpaulsen/repos/lagarsoft/AdventOfCode/src/main/java/org/example/sample-day4.txt"));
-            reader = new BufferedReader(new FileReader("/Users/mpaulsen/repos/lagarsoft/AdventOfCode/src/main/java/org/example/input-day4.txt"));
+            String fileName = "input-day5.txt";
+//            String fileName = "sample-day5.txt";
+            reader = new BufferedReader(new FileReader(ABSOLUTH_PATH_FOLDER + fileName));
             String line = reader.readLine();
 
             while (line != null) {
 
-                List<Character> columns = new ArrayList<>();
-                for (char c : line.toCharArray()) {
-                    columns.add(c);
+                if (line.contains("|")) {
+                    rules.add(line);
+                    String[] parts = line.split("\\|");
+                    RuleModel ruleModel = new RuleModel(Integer.parseInt(parts[0].trim()), Integer.parseInt(parts[1].trim()));
+                    rulesParsed.add(ruleModel);
+                } else {
+                    if (!line.isEmpty()) {
+                        updates.add(line);
+                        String[] parts = line.split(",");
+                        int[] updateLine = Arrays.stream(parts).map(String::trim).mapToInt(Integer::parseInt).toArray();
+                        updatesParsed.add(updateLine);
+                    }
                 }
-                rows.add(columns);
+
+
 
                 line = reader.readLine();
             }
@@ -36,82 +54,53 @@ public class Main {
             e.printStackTrace();
         }
 
-        // the alphabet must be the characters read from the input
-        alphabetSoup = Utils.convertToCharArray(rows);
+        System.out.println("Rules: " + rules);
+        System.out.println("RulesParsed: " + rulesParsed);
+        System.out.println("Updates: " + updates);
+        System.out.println("Updates Parsed: " + updatesParsed);
 
-        isPresent();
+        // get a list of valid updates
+        List<int[]> validUpdates = filterValidUpdates(rulesParsed, updatesParsed);
+        System.out.println("valid Updates: " + validUpdates.size());
 
+        int sum = 0;
+        for(int[] update : validUpdates) {
+            sum += getMiddleValue(update);
+        }
+        System.out.println("Sum: " + sum);
     }
 
-    public static char[][] getSubMatrix(char[][] matrix, int startRow, int startCol, int subRows, int subCols) {
-        // Initialize the submatrix
-        char[][] subMatrix = new char[subRows][subCols];
-
-        // Copy elements into the submatrix
-        for (int i = 0; i < subRows; i++) {
-            for (int j = 0; j < subCols; j++) {
-                subMatrix[i][j] = matrix[startRow + i][startCol + j];
-            }
-        }
-
-        return subMatrix;
+    private static int getMiddleValue(int[] update) {
+        int index = update.length / 2;
+        return update[index];
     }
 
-    public static int isPresent() {
-        int count = 0;
-        int iter = 0;
-        int countMatrix = 0;
-        for (int i = 0; i < alphabetSoup.length; i++) {
-            for (int j = 0; j < alphabetSoup[0].length; j++) {
-                iter++;
+    private static List<int[]> filterValidUpdates(List<RuleModel> rulesParsed, List<int[]> updatesParsed) {
 
-                if (i + 3 <= alphabetSoup.length && (j + 3 <= alphabetSoup[0].length)) {
-                    countMatrix++;
-                    char[][] matrix = getSubMatrix(alphabetSoup, i, j, 3, 3);
-                    if ((searchWordFromPositionWithMatrix(0, 0, "MAS", 0, DirectionEnum.DOWN_RIGHT, matrix) &&
-                        searchWordFromPositionWithMatrix(2, 0, "SAM", 0, DirectionEnum.DOWN_LEFT, matrix))
-                        ||
-                        (searchWordFromPositionWithMatrix(0, 0, "SAM", 0, DirectionEnum.DOWN_RIGHT, matrix) &&
-                            searchWordFromPositionWithMatrix(2, 0, "MAS", 0, DirectionEnum.DOWN_LEFT, matrix))
-                        ||
-                        (searchWordFromPositionWithMatrix(0, 0, "MAS", 0, DirectionEnum.DOWN_RIGHT, matrix) &&
-                            searchWordFromPositionWithMatrix(2, 0, "MAS", 0, DirectionEnum.DOWN_LEFT, matrix))
-                        ||
-                        (searchWordFromPositionWithMatrix(0, 0, "SAM", 0, DirectionEnum.DOWN_RIGHT, matrix) &&
-                            searchWordFromPositionWithMatrix(2, 0, "SAM", 0, DirectionEnum.DOWN_LEFT, matrix))
-                        ) {
-                        count++;
-                    }
-                }
+        List<int[]> validUpdates = new ArrayList<>();
 
+        for (int[] update : updatesParsed) {
+            if (isValidUpdate(rulesParsed, update)) {
+                validUpdates.add(update);
             }
         }
-        System.out.println("Iterations: " + iter);
-        System.out.println("Count Matrix: " + countMatrix);
-        System.out.println("Count: " + count);
-        return count;
+
+        return validUpdates;
     }
 
-    private static boolean searchWordFromPositionWithMatrix(int x, int y, String word, int index, DirectionEnum direction,
-        char[][] matrix) {
-
-        if (index == word.length()) {
-            return true;
-        }
-
-        if (x < 0 || y < 0 || x >= matrix.length || y >= matrix[0].length || matrix[x][y] != word.charAt(index)) {
-            return false;
-        }
-
-        switch (direction) {
-            case DOWN_RIGHT -> {
-                return searchWordFromPositionWithMatrix(x + 1, y + 1, word, index + 1, DirectionEnum.DOWN_RIGHT, matrix);
+    private static boolean isValidUpdate(List<RuleModel> rulesParsed, int[] update) {
+        boolean result = true;
+        List<Integer> updateList = Arrays.stream(update).boxed().toList();
+        for (RuleModel rule : rulesParsed) {
+            if (updateList.contains(rule.getX()) && updateList.contains(rule.getY())) {
+                result = result && isBefore(updateList, rule.getX(), rule.getY());
             }
-            case DOWN_LEFT -> {
-                return searchWordFromPositionWithMatrix(x - 1, y + 1, word, index + 1, DirectionEnum.DOWN_LEFT, matrix);
-            }
-            default -> throw new RuntimeException("Invalid direction");
         }
+        return result;
+    }
+
+    private static boolean isBefore(List<Integer> updateList, int x, int y) {
+        return updateList.indexOf(x) < updateList.indexOf(y);
     }
 
 }
