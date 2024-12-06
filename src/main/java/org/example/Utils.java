@@ -21,4 +21,17 @@ public class Utils {
         return charArray;
     }
 
+    public static int[] convertToIntArray(List<Integer> intList) {
+
+        int size = intList.size();
+        int[] intArray = new int[size];
+
+        // Populate the 2D char array
+        for (int i = 0; i < size; i++) {
+            intArray[i] = intList.get(i);
+        }
+
+        return intArray;
+    }
+
 }
