@@ -80,13 +80,17 @@ public class Main {
             return accumulator == total;
         }
         long accumulator2 = accumulator;
+        long accumulator3 = accumulator;
         accumulator += operands.get(0);
         boolean result =  isValidEquation(total, operands.subList(1, operands.size()), accumulator);
 
         accumulator2 = accumulator2 * operands.get(0);
         boolean result2 = isValidEquation(total, operands.subList(1, operands.size()), accumulator2);
 
-        return result || result2;
+        accumulator3 = Long.parseLong(accumulator3 + "" + operands.get(0)) ;
+        boolean result3 = isValidEquation(total, operands.subList(1, operands.size()), accumulator3);
+
+        return result || result2 || result3;
     }
 
 }
