@@ -9,38 +9,33 @@ public class Main {
 
     private static final String ABSOLUTH_PATH_FOLDER = "/Users/mpaulsen/repos/lagarsoft/AdventOfCode/src/main/java/org/example/";
 
-    private static char[][] alphabetSoup;
-    private static int total = 0;
-
+    private static List<String> newStones = new ArrayList<>();
 
     public static void main(String[] args) {
 
-        List<Long> totals = new ArrayList<>();
-        List<List<Long>> operands = new ArrayList<>();
-
-
         BufferedReader reader = null;
         try {
-            String fileName = "input-day7.txt";
-//            String fileName = "sample-day7.txt";
+            String fileName = "input-day11.txt";
+//            String fileName = "sample-day11.txt";
             reader = new BufferedReader(new FileReader(ABSOLUTH_PATH_FOLDER + fileName));
             String line = reader.readLine();
 
             while (line != null) {
 
-                var parts = line.split(":");
-                totals.add(Long.parseLong(parts[0].trim()));
+                var stones = line.split(" ");
 
-                var operandsList = new ArrayList<Long>();
-
-                var parts2 = parts[1].split(" ");
-
-                for (String part : parts2) {
-                    if (!part.isEmpty()) {
-                        operandsList.add(Long.parseLong(part.trim()));
+                int blinkCount = 25;
+                for (int i = 0; i < blinkCount; i++) {
+                    System.out.println("blink #" + (i+1+""));
+                    for (String part : stones) {
+                        newStones.addAll(applyRules(part));
                     }
+                    stones = newStones.toArray(new String[0]);
+                    newStones.clear();
+                    System.out.println("stones: " + Arrays.toString(stones));
                 }
-                operands.add(operandsList);
+
+                System.out.println("# stones: " + stones.length);
 
                 line = reader.readLine();
             }
@@ -51,46 +46,28 @@ public class Main {
             e.printStackTrace();
         }
 
-        System.out.println("totals: " + totals);
-        System.out.println("operands: " + operands);
-
-        // get a list of valid equations
-        List<Long> validEquations = filterValidEquations(totals, operands);
-
-        // sum of all the items of validEquations
-        long sum = validEquations.stream().map(Long::longValue).reduce(0L, Long::sum);
-        System.out.println("Sum: " + sum);
-
     }
 
-    private static List<Long> filterValidEquations(List<Long> totals, List<List<Long>> operands) {
-        List<Long> validEquations = new ArrayList<>();
-
-        for (List<Long> operandList : operands) {
-            int i = operands.indexOf(operandList);
-            if (isValidEquation(totals.get(i), operandList, 0)) {
-                validEquations.add(totals.get(i));
-            }
+    private static List<String> applyRules(String stone) {
+        List<String> result = new ArrayList<>();
+        if (stone.equals("0")) {
+            result.add("1");
+            return result;
         }
-        return validEquations;
-    }
-
-    private static boolean isValidEquation(long total, List<Long> operands, long accumulator) {
-        if (operands.isEmpty()) {
-            return accumulator == total;
+        int digitCount = stone.length();
+        if (digitCount % 2 == 0) {
+            var half = digitCount / 2;
+            long split = Long.parseLong(stone.substring(0, half));
+            long split2 = Long.parseLong(stone.substring(half, digitCount));
+            result.add(split + "");
+            result.add(split2 + "");
+            return result;
         }
-        long accumulator2 = accumulator;
-        long accumulator3 = accumulator;
-        accumulator += operands.get(0);
-        boolean result =  isValidEquation(total, operands.subList(1, operands.size()), accumulator);
-
-        accumulator2 = accumulator2 * operands.get(0);
-        boolean result2 = isValidEquation(total, operands.subList(1, operands.size()), accumulator2);
-
-        accumulator3 = Long.parseLong(accumulator3 + "" + operands.get(0)) ;
-        boolean result3 = isValidEquation(total, operands.subList(1, operands.size()), accumulator3);
-
-        return result || result2 || result3;
+        long stoneNumber = Long.parseLong(stone);
+        stoneNumber = stoneNumber * 2024;
+        result.add(stoneNumber + "");
+        return result;
     }
+
 
 }
