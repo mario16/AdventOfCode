@@ -1,30 +1,33 @@
 package org.example;
 
 import java.io.*;
-import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Main {
 
-    private static final String ABSOLUTH_PATH_FOLDER = "/Users/mpaulsen/repos/lagarsoft/AdventOfCode/src/main/java/org/example/";
-
-    private static final Map<Integer, Map<String, Long>> cache = new HashMap<>();
+    private static final String ABSOLUTE_PATH_FOLDER = "/Users/mpaulsen/repos/lagarsoft/AdventOfCode/src/main/java/org/example/";
 
     public static void main(String[] args) {
 
         BufferedReader reader = null;
+        long total = 0;
         try {
-            String fileName = "input-day11.txt";
-//            String fileName = "sample-day11.txt";
-            reader = new BufferedReader(new FileReader(ABSOLUTH_PATH_FOLDER + fileName));
+            String fileName = "input-day3.txt";
+//            String fileName = "sample-day3.txt";
+            reader = new BufferedReader(new FileReader(ABSOLUTE_PATH_FOLDER + fileName));
             String line = reader.readLine();
+
+            while (line != null) {
+
+                total += scanLine(line);
+
+                line = reader.readLine();
+            }
+
             reader.close();
 
-            var stones = line.split(" ");
-
-            int blinkCount = 75;
-            long result = blinkOnce(Arrays.asList(stones), blinkCount);
-
-            System.out.println("result: " + result);
+            System.out.println("total: " + total);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -32,70 +35,21 @@ public class Main {
 
     }
 
-    private static long blinkOnce(List<String> stones, int pendingBlinks) {
-        if (pendingBlinks == 0) {
-            return stones.size();
+    public static long runTest(String regex, String text) {
+        long total = 0;
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(text);
+        while (matcher.find()) {
+            long x = Long.parseLong(matcher.group(1)); // Capture X
+            long y = Long.parseLong(matcher.group(2)); // Capture Y
+            total += x * y;
         }
-        long result = 0;
-
-        if (!stones.isEmpty()) {
-            String nextValue = stones.get(0);
-            long value = getValue(pendingBlinks, nextValue);
-            if (value != -1) {
-                result += value;
-            } else {
-                List<String> newList = applyRules(nextValue);
-                result += blinkOnce(newList, pendingBlinks - 1);
-                saveValue(pendingBlinks, stones.get(0), result);
-            }
-
-            result += blinkOnce(stones.subList(1, stones.size()), pendingBlinks);
-        }
-        return result;
-
+        return total;
     }
 
-    private static void saveValue(int pendingBlinks, String s, long result) {
-        if (!cache.containsKey(pendingBlinks)) {
-            cache.put(pendingBlinks, new HashMap<>());
-        } else {
-            if (cache.get(pendingBlinks).containsKey(s)) {
-                return;
-            }
-        }
-        cache.get(pendingBlinks).put(s, result);
+    private static long scanLine(String line) {
+        String regex = "mul\\(([0-9]{1,3}),([0-9]{1,3})\\)";
+        return runTest(regex, line);
     }
-
-    private static long getValue(int pendingBlinks, String s) {
-        if (!cache.containsKey(pendingBlinks)) {
-            return -1;
-        }
-        if (!cache.get(pendingBlinks).containsKey(s)) {
-            return -1;
-        }
-        return cache.get(pendingBlinks).get(s);
-    }
-
-    private static List<String> applyRules(String stone) {
-        List<String> result = new ArrayList<>();
-        if (stone.equals("0")) {
-            result.add("1");
-            return result;
-        }
-        int digitCount = stone.length();
-        if (digitCount % 2 == 0) {
-            var half = digitCount / 2;
-            long split = Long.parseLong(stone.substring(0, half));
-            long split2 = Long.parseLong(stone.substring(half, digitCount));
-            result.add(split + "");
-            result.add(split2 + "");
-            return result;
-        }
-        long stoneNumber = Long.parseLong(stone);
-        stoneNumber = stoneNumber * 2024;
-        result.add(stoneNumber + "");
-        return result;
-    }
-
 
 }
